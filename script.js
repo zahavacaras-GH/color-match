@@ -98,6 +98,17 @@ const dom = {
   playAgainBtn:     $('play-again-btn'),
   confettiContainer:$('confetti-container'),
   particlesCanvas:  $('particles-canvas'),
+  // Leaderboard
+  lbOpenBtn:        $('lb-open-btn'),
+  lbModal:          $('lb-modal'),
+  lbList:           $('lb-list'),
+  lbEmpty:          $('lb-empty'),
+  lbCloseBtn:       $('lb-close-btn'),
+  lbPrompt:         $('lb-prompt'),
+  lbPromptScore:    $('lb-prompt-score'),
+  lbNameInput:      $('lb-name-input'),
+  lbSaveBtn:        $('lb-save-btn'),
+  lbSkipBtn:        $('lb-skip-btn'),
 };
 
 // ============================================================
@@ -429,6 +440,9 @@ function showScoreReveal(score) {
       if (score >= 90) {
         triggerConfetti();
       }
+      qualifiesForLeaderboard(score).then(q => {
+        if (q) setTimeout(() => showLeaderboardPrompt(score), 900);
+      });
     }
   }
 
@@ -763,6 +777,142 @@ function bindEvents() {
     if (e.key === 'Enter' && !state.isAnimating) handleMatchColor();
     if ((e.key === 'r' || e.key === 'R') && state.isAnimating) playAgain();
   });
+
+  // Leaderboard
+  if (dom.lbOpenBtn) {
+    dom.lbOpenBtn.addEventListener('click', () => {
+      playSound('tick');
+      openLeaderboard();
+    });
+  }
+  if (dom.lbCloseBtn) {
+    dom.lbCloseBtn.addEventListener('click', () => {
+      playSound('tick');
+      closeLeaderboard();
+    });
+  }
+  if (dom.lbModal) {
+    dom.lbModal.addEventListener('click', (e) => {
+      if (e.target === dom.lbModal) closeLeaderboard();
+    });
+  }
+  if (dom.lbSaveBtn) {
+    dom.lbSaveBtn.addEventListener('click', saveLeaderboardEntry);
+  }
+  if (dom.lbSkipBtn) {
+    dom.lbSkipBtn.addEventListener('click', hideLeaderboardPrompt);
+  }
+  if (dom.lbNameInput) {
+    dom.lbNameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') saveLeaderboardEntry();
+    });
+  }
+}
+
+// ============================================================
+// GLOBAL LEADERBOARD
+// ============================================================
+
+let leaderboardCache = [];
+let pendingLbScore = null;
+
+async function fetchTopScores() {
+  try {
+    const res = await fetch('/api/scores', { cache: 'no-store' });
+    if (!res.ok) throw new Error('Fetch failed');
+    const data = await res.json();
+    leaderboardCache = Array.isArray(data.scores) ? data.scores : [];
+    return leaderboardCache;
+  } catch (err) {
+    console.warn('Leaderboard fetch failed:', err);
+    return [];
+  }
+}
+
+async function submitScore(name, score, hex) {
+  try {
+    const res = await fetch('/api/scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, score, hex }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Score submit failed:', err);
+    return false;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function renderLeaderboard(scores) {
+  dom.lbList.innerHTML = '';
+  if (!scores || scores.length === 0) {
+    dom.lbList.appendChild(dom.lbEmpty);
+    dom.lbEmpty.style.display = 'block';
+    return;
+  }
+  dom.lbEmpty.style.display = 'none';
+  scores.forEach((entry, idx) => {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    const swatch = entry.hex
+      ? `<span class="lb-swatch" style="background:${entry.hex}"></span>`
+      : '';
+    row.innerHTML = `
+      <span class="lb-rank">#${idx + 1}</span>
+      <span class="lb-name">${escapeHtml(entry.name)}</span>
+      ${swatch}
+      <span class="lb-score">${entry.score}%</span>
+    `;
+    dom.lbList.appendChild(row);
+  });
+}
+
+async function qualifiesForLeaderboard(score) {
+  const top = await fetchTopScores();
+  if (top.length < 10) return true;
+  return score > top[top.length - 1].score;
+}
+
+function showLeaderboardPrompt(score) {
+  pendingLbScore = score;
+  dom.lbPromptScore.textContent = `${score}%`;
+  dom.lbNameInput.value = '';
+  dom.lbPrompt.classList.remove('hidden');
+  setTimeout(() => dom.lbNameInput.focus(), 100);
+}
+
+function hideLeaderboardPrompt() {
+  dom.lbPrompt.classList.add('hidden');
+  pendingLbScore = null;
+}
+
+async function saveLeaderboardEntry() {
+  if (pendingLbScore == null) return;
+  const name = dom.lbNameInput.value.trim();
+  if (!name) {
+    dom.lbNameInput.focus();
+    return;
+  }
+  const hex = toHex(state.playerR, state.playerG, state.playerB);
+  const ok = await submitScore(name, pendingLbScore, hex);
+  hideLeaderboardPrompt();
+  if (ok) await openLeaderboard();
+}
+
+async function openLeaderboard() {
+  await fetchTopScores();
+  renderLeaderboard(leaderboardCache);
+  dom.lbModal.classList.remove('hidden');
+}
+
+function closeLeaderboard() {
+  dom.lbModal.classList.add('hidden');
 }
 
 // ============================================================
