@@ -507,10 +507,15 @@ function triggerConfetti() {
 // CELEBRATION (random effect for scores >= 80%)
 // ============================================================
 
+let lastCelebrationIdx = -1;
 function triggerCelebration() {
   const effects = [triggerStreamers, triggerStrawberries, triggerFireworks];
-  const pick = effects[Math.floor(Math.random() * effects.length)];
-  pick();
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * effects.length);
+  } while (idx === lastCelebrationIdx);
+  lastCelebrationIdx = idx;
+  effects[idx]();
 }
 
 function triggerStreamers() {
