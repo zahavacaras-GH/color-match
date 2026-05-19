@@ -58,6 +58,10 @@
               <span class="stat-value" id="best-display">0%</span>
             </div>
           </div>
+          <button class="lb-open-btn" id="lb-open-btn" title="Leaderboard">
+            <span>🏆</span>
+            <span class="lb-open-label">TOP 10</span>
+          </button>
         </div>
       </header>
 
@@ -181,6 +185,35 @@
         <button class="play-again-btn" id="play-again-btn">
           <span>PLAY AGAIN</span>
         </button>
+      </div>
+    </div>
+
+    <!-- Leaderboard modal -->
+    <div class="lb-modal hidden" id="lb-modal">
+      <div class="lb-card">
+        <div class="lb-header">
+          <p class="lb-title">🏆 LEADERBOARD</p>
+          <p class="lb-subtitle">Global top 10 scores</p>
+        </div>
+        <div class="lb-list" id="lb-list">
+          <p class="lb-empty" id="lb-empty">No scores yet — play a round to get on the board!</p>
+        </div>
+        <button class="lb-close-btn" id="lb-close-btn">✕ Close</button>
+      </div>
+    </div>
+
+    <!-- Nickname prompt -->
+    <div class="lb-prompt hidden" id="lb-prompt">
+      <div class="lb-prompt-card">
+        <p class="lb-prompt-icon">🏆</p>
+        <p class="lb-prompt-title">You made the Top 10!</p>
+        <p class="lb-prompt-score" id="lb-prompt-score">97%</p>
+        <p class="lb-prompt-sub">Enter your name for the leaderboard</p>
+        <input class="lb-name-input" id="lb-name-input" type="text" maxlength="20" placeholder="Your name..." autocomplete="off" spellcheck="false" />
+        <div class="lb-prompt-actions">
+          <button class="lb-save-btn" id="lb-save-btn">SAVE</button>
+          <button class="lb-skip-btn" id="lb-skip-btn">Skip</button>
+        </div>
       </div>
     </div>
 
