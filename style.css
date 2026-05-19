@@ -1292,3 +1292,57 @@ body::before {
   80%  { opacity: 1; }
   100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.2); opacity: 0; }
 }
+
+/* ============================================================
+   ON FIRE BAR — appears when streak >= 3
+   ============================================================ */
+.fire-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 600;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(20,5,0,0.95), rgba(60,15,0,0.95), rgba(20,5,0,0.95));
+  border-top: 2px solid rgba(255,100,0,0.6);
+  box-shadow: 0 -6px 30px rgba(255,80,0,0.5), inset 0 1px 0 rgba(255,150,50,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  animation: fireBarIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fireBarIn {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.fire-text {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: clamp(14px, 3vw, 22px);
+  font-weight: 900;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #ff6a00, #ffdd00, #ff6a00);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fireShimmer 1.6s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes fireShimmer {
+  to { background-position: 200% center; }
+}
+
+.fire-emojis {
+  font-size: clamp(20px, 4vw, 28px);
+  animation: fireDance 0.6s ease-in-out infinite alternate;
+  line-height: 1;
+}
+
+@keyframes fireDance {
+  0%   { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-3px) scale(1.1); }
+}

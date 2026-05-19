@@ -98,6 +98,7 @@ const dom = {
   playAgainBtn:     $('play-again-btn'),
   confettiContainer:$('confetti-container'),
   particlesCanvas:  $('particles-canvas'),
+  fireBar:          $('fire-bar'),
   // Leaderboard
   lbOpenBtn:        $('lb-open-btn'),
   lbModal:          $('lb-modal'),
@@ -372,7 +373,17 @@ function handleMatchColor() {
   }
 
   updateStatsDisplay();
+  updateFireBar();
   showScoreReveal(score);
+}
+
+function updateFireBar() {
+  if (!dom.fireBar) return;
+  if (state.streak >= 3) {
+    dom.fireBar.classList.remove('hidden');
+  } else {
+    dom.fireBar.classList.add('hidden');
+  }
 }
 
 /** Show the cinematic score overlay */
