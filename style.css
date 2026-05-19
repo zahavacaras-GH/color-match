@@ -1244,3 +1244,51 @@ body::before {
   color: #fff;
 }
 .lb-skip-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* ============================================================
+   CELEBRATION EFFECTS — streamers, strawberries, fireworks
+   ============================================================ */
+
+/* Streamers — long ribbons falling with a wobble */
+.streamer-piece {
+  position: absolute;
+  top: -120px;
+  border-radius: 3px;
+  animation: streamerFall linear forwards;
+  transform-origin: top center;
+  box-shadow: 0 0 6px rgba(255,255,255,0.2);
+}
+@keyframes streamerFall {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg) scaleX(1); opacity: 0.9; }
+  50%  { transform: translateY(55vh) translateX(var(--wobble, 0px)) rotate(180deg) scaleX(-0.6); opacity: 0.85; }
+  100% { transform: translateY(115vh) translateX(calc(var(--wobble, 0px) * -0.4)) rotate(360deg) scaleX(1); opacity: 0; }
+}
+
+/* Strawberries — emoji falling and spinning */
+.strawberry-piece {
+  position: absolute;
+  top: -60px;
+  line-height: 1;
+  animation: strawberryFall linear forwards;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  user-select: none;
+}
+@keyframes strawberryFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(115vh) rotate(calc(var(--spin, 1) * 540deg)); opacity: 0.9; }
+}
+
+/* Fireworks — radial sparks bursting from a point */
+.firework-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: fireworkBurst ease-out forwards;
+  pointer-events: none;
+}
+@keyframes fireworkBurst {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.2); opacity: 0; }
+}

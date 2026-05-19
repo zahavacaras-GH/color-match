@@ -437,8 +437,8 @@ function showScoreReveal(score) {
       dom.scoreBarFill.style.width = `${score}%`;
       playSound('reveal');
 
-      if (score >= 90) {
-        triggerConfetti();
+      if (score >= 80) {
+        triggerCelebration();
       }
       qualifiesForLeaderboard(score).then(q => {
         if (q) setTimeout(() => showLeaderboardPrompt(score), 900);
@@ -501,6 +501,82 @@ function triggerConfetti() {
   setTimeout(() => {
     dom.confettiContainer.innerHTML = '';
   }, 4000);
+}
+
+// ============================================================
+// CELEBRATION (random effect for scores >= 80%)
+// ============================================================
+
+function triggerCelebration() {
+  const effects = [triggerStreamers, triggerStrawberries, triggerFireworks];
+  const pick = effects[Math.floor(Math.random() * effects.length)];
+  pick();
+}
+
+function triggerStreamers() {
+  const colors = ['#a855f7','#3b82f6','#ec4899','#06b6d4','#fbbf24','#4ade80','#f87171','#ffffff'];
+  const count = 35;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'streamer-piece';
+    s.style.left = `${Math.random() * 100}%`;
+    s.style.background = colors[Math.floor(Math.random() * colors.length)];
+    s.style.width  = `${4 + Math.random() * 6}px`;
+    s.style.height = `${70 + Math.random() * 90}px`;
+    s.style.animationDuration = `${2.5 + Math.random() * 2}s`;
+    s.style.animationDelay    = `${Math.random() * 0.6}s`;
+    s.style.setProperty('--wobble', `${(Math.random() * 80 - 40)}px`);
+    s.style.opacity = `${0.7 + Math.random() * 0.3}`;
+    dom.confettiContainer.appendChild(s);
+  }
+  setTimeout(() => { dom.confettiContainer.innerHTML = ''; }, 5000);
+}
+
+function triggerStrawberries() {
+  const count = 30;
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'strawberry-piece';
+    s.textContent = '🍓';
+    s.style.left = `${Math.random() * 100}%`;
+    s.style.fontSize = `${22 + Math.random() * 22}px`;
+    s.style.animationDuration = `${2 + Math.random() * 2}s`;
+    s.style.animationDelay    = `${Math.random() * 0.6}s`;
+    s.style.opacity = `${0.85 + Math.random() * 0.15}`;
+    s.style.setProperty('--spin', `${Math.random() > 0.5 ? 1 : -1}`);
+    dom.confettiContainer.appendChild(s);
+  }
+  setTimeout(() => { dom.confettiContainer.innerHTML = ''; }, 5000);
+}
+
+function triggerFireworks() {
+  const colors = ['#fbbf24','#ec4899','#06b6d4','#a855f7','#4ade80','#f87171','#3b82f6','#ffffff'];
+  const bursts = 5;
+  for (let b = 0; b < bursts; b++) {
+    setTimeout(() => {
+      const cx = 10 + Math.random() * 80;
+      const cy = 8 + Math.random() * 45;
+      const burstColor = colors[Math.floor(Math.random() * colors.length)];
+      const sparks = 24;
+      for (let i = 0; i < sparks; i++) {
+        const angle = (i / sparks) * Math.PI * 2;
+        const dist = 80 + Math.random() * 90;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist;
+        const s = document.createElement('div');
+        s.className = 'firework-spark';
+        s.style.left = `${cx}%`;
+        s.style.top  = `${cy}%`;
+        s.style.background = burstColor;
+        s.style.boxShadow  = `0 0 8px ${burstColor}`;
+        s.style.setProperty('--dx', `${dx}px`);
+        s.style.setProperty('--dy', `${dy}px`);
+        s.style.animationDuration = `${0.9 + Math.random() * 0.4}s`;
+        dom.confettiContainer.appendChild(s);
+      }
+    }, b * 350);
+  }
+  setTimeout(() => { dom.confettiContainer.innerHTML = ''; }, 4500);
 }
 
 // ============================================================
