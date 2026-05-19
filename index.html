@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Color Match — Can You Match The Color?</title>
+    <meta name="description" content="A color matching game where you recreate target colors using a color wheel and RGB sliders." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="Color Match Game" />
+    <meta property="og:description" content="Match target colors using a color wheel and RGB sliders. How accurate can you get?" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23a855f7'/></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+
+    <!-- Loading screen -->
+    <div id="loading-screen">
+      <div class="loader-content">
+        <div class="loader-ring"></div>
+        <div class="loader-ring loader-ring--2"></div>
+        <div class="loader-ring loader-ring--3"></div>
+        <p class="loader-text">COLOR MATCH</p>
+        <p class="loader-sub">Initializing Color Engine...</p>
+      </div>
+    </div>
+
+    <!-- Floating particles -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Main app -->
+    <div id="app" class="hidden">
+
+      <!-- Header bar -->
+      <header class="header">
+        <div class="header-left">
+          <span class="logo">🎨 COLOR MATCH</span>
+        </div>
+        <div class="header-center">
+          <div class="difficulty-selector">
+            <button class="diff-btn" data-diff="easy">Easy</button>
+            <button class="diff-btn active" data-diff="normal">Normal</button>
+            <button class="diff-btn" data-diff="hard">Hard</button>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="stats-bar">
+            <div class="stat-item">
+              <span class="stat-label">🔥 Streak</span>
+              <span class="stat-value" id="streak-display">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">🏆 Best</span>
+              <span class="stat-value" id="best-display">0%</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Target color section -->
+      <section class="target-section">
+        <p class="section-label">MATCH THIS COLOR</p>
+        <div class="target-swatch-wrapper">
+          <div class="target-swatch" id="target-swatch">
+            <div class="swatch-glow" id="swatch-glow"></div>
+            <div class="swatch-inner">
+              <span class="swatch-question" id="swatch-question">?</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Color picker section -->
+      <section class="picker-section">
+        <div class="picker-grid">
+
+          <!-- Color wheel -->
+          <div class="wheel-container">
+            <p class="picker-label">COLOR WHEEL</p>
+            <div class="wheel-wrapper">
+              <canvas id="color-wheel" width="220" height="220"></canvas>
+              <div class="wheel-cursor" id="wheel-cursor"></div>
+            </div>
+            <div class="brightness-wrap">
+              <label class="slider-label">Brightness</label>
+              <input type="range" id="brightness-slider" class="brightness-range" min="0" max="100" value="50">
+            </div>
+          </div>
+
+          <!-- Sliders -->
+          <div class="sliders-container">
+            <p class="picker-label">RGB SLIDERS</p>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="channel-label red-label">R</span>
+                <span class="channel-value" id="r-value">128</span>
+              </div>
+              <div class="slider-track red-track">
+                <input type="range" id="r-slider" class="channel-slider" min="0" max="255" value="128">
+              </div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="channel-label green-label">G</span>
+                <span class="channel-value" id="g-value">128</span>
+              </div>
+              <div class="slider-track green-track">
+                <input type="range" id="g-slider" class="channel-slider" min="0" max="255" value="128">
+              </div>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span class="channel-label blue-label">B</span>
+                <span class="channel-value" id="b-value">128</span>
+              </div>
+              <div class="slider-track blue-track">
+                <input type="range" id="b-slider" class="channel-slider" min="0" max="255" value="128">
+              </div>
+            </div>
+
+            <!-- Live preview -->
+            <div class="preview-section">
+              <p class="picker-label">YOUR COLOR</p>
+              <div class="preview-swatch" id="preview-swatch">
+                <div class="preview-inner"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Submit button -->
+        <button class="match-btn" id="match-btn">
+          <span class="btn-glow"></span>
+          <span class="btn-text">MATCH COLOR</span>
+        </button>
+      </section>
+
+    </div>
+
+    <!-- Score overlay -->
+    <div class="score-overlay hidden" id="score-overlay">
+      <div class="confetti-container" id="confetti-container"></div>
+      <div class="score-card" id="score-card">
+        <div class="score-header">
+          <p class="score-title" id="score-title">Calculating...</p>
+        </div>
+
+        <div class="score-number-wrap">
+          <span class="score-number" id="score-number">0</span>
+          <span class="score-percent">%</span>
+        </div>
+
+        <div class="color-compare">
+          <div class="compare-item">
+            <div class="compare-swatch" id="compare-target"></div>
+            <p class="compare-label">Target</p>
+            <p class="compare-hex" id="compare-target-hex">#000000</p>
+          </div>
+          <div class="compare-vs">VS</div>
+          <div class="compare-item">
+            <div class="compare-swatch" id="compare-player"></div>
+            <p class="compare-label">Yours</p>
+            <p class="compare-hex" id="compare-player-hex">#000000</p>
+          </div>
+        </div>
+
+        <div class="score-bar-wrap">
+          <div class="score-bar-track">
+            <div class="score-bar-fill" id="score-bar-fill"></div>
+          </div>
+        </div>
+
+        <button class="play-again-btn" id="play-again-btn">
+          <span>PLAY AGAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+
+    <!--
+    ============================================================
+    RUNNING IN REPLIT
+    ============================================================
+    1. This is a Vite-served app. The dev server runs automatically.
+    2. Open the preview pane in Replit to play the game.
+    3. The game runs entirely in the browser — no backend needed.
+
+    SCORING SYSTEM
+    ============================================================
+    - RGB Distance Formula:
+        distance = sqrt((r1-r2)² + (g1-g2)² + (b1-b2)²)
+    - Maximum possible distance:
+        sqrt(255² + 255² + 255²) ≈ 441.67
+    - Score = (1 - distance / maxDistance) × 100
+    - Grades:
+        95–100% → "Perfect Match! 🎯"
+        80–94%  → "Amazing! ✨"
+        60–79%  → "Pretty Close! 👍"
+        Below   → "Try Again! 💪"
+
+    CUSTOMIZATION TIPS
+    ============================================================
+    - Add palette presets in script.js under COOLORS_PALETTES
+    - Adjust difficulty in DIFFICULTY_CONFIG
+    - Change confetti particle count in triggerConfetti()
+    - Tune sound frequencies in the playSound() function
+    - Add new difficulty levels or scoring tiers as desired
+    ============================================================
+    -->
+  </body>
+</html>
