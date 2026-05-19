@@ -360,6 +360,7 @@ function handleMatchColor() {
   const { targetR, targetG, targetB, playerR, playerG, playerB } = state;
   const distance = rgbDistance(targetR, targetG, targetB, playerR, playerG, playerB);
   const score = distanceToScore(distance);
+  state.score = score;
 
   // Update streak and best
   if (score >= 60) {
