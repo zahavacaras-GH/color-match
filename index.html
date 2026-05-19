@@ -182,11 +182,20 @@
           </div>
         </div>
 
-        <button class="play-again-btn" id="play-again-btn">
-          <span>PLAY AGAIN</span>
-        </button>
+        <div class="score-actions">
+          <button class="play-again-btn" id="play-again-btn">
+            <span>PLAY AGAIN</span>
+          </button>
+          <button class="share-score-btn" id="share-score-btn" title="Share your score">
+            <span class="share-icon">📤</span>
+            <span class="share-label">SHARE</span>
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Copy toast -->
+    <div class="copy-toast hidden" id="copy-toast">✅ Copied to clipboard!</div>
 
     <!-- Leaderboard modal -->
     <div class="lb-modal hidden" id="lb-modal">

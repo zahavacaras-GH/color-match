@@ -99,6 +99,8 @@ const dom = {
   confettiContainer:$('confetti-container'),
   particlesCanvas:  $('particles-canvas'),
   fireBar:          $('fire-bar'),
+  shareScoreBtn:    $('share-score-btn'),
+  copyToast:        $('copy-toast'),
   // Leaderboard
   lbOpenBtn:        $('lb-open-btn'),
   lbModal:          $('lb-modal'),
@@ -596,6 +598,135 @@ function triggerFireworks() {
 }
 
 // ============================================================
+// SHARE SCORE
+// ============================================================
+
+function generateScoreImage() {
+  const { targetR, targetG, targetB, playerR, playerG, playerB, score } = state;
+  const targetHex = toHex(targetR, targetG, targetB);
+  const playerHex = toHex(playerR, playerG, playerB);
+
+  const W = 800, H = 800;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#1a0a2e');
+  bg.addColorStop(1, '#2d1b4e');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 44px "Orbitron", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🎨 COLOR MATCH', W / 2, 100);
+
+  let scoreColor = '#f87171';
+  if (score >= 80) scoreColor = '#4ade80';
+  else if (score >= 60) scoreColor = '#fbbf24';
+  ctx.fillStyle = scoreColor;
+  ctx.font = '900 180px "Orbitron", sans-serif';
+  ctx.fillText(`${score}%`, W / 2, 290);
+
+  ctx.fillStyle = playerHex;
+  ctx.fillRect(W / 2 - 240, 360, 200, 200);
+  ctx.fillStyle = targetHex;
+  ctx.fillRect(W / 2 + 40, 360, 200, 200);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(W / 2 - 240, 360, 200, 200);
+  ctx.strokeRect(W / 2 + 40, 360, 200, 200);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 24px "Inter", sans-serif';
+  ctx.fillText('Your color', W / 2 - 140, 600);
+  ctx.fillText('Target', W / 2 + 140, 600);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '500 18px "Inter", sans-serif';
+  ctx.fillText(playerHex, W / 2 - 140, 630);
+  ctx.fillText(targetHex, W / 2 + 140, 630);
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = '900 36px "Orbitron", sans-serif';
+  ctx.fillText('Can you beat my score?', W / 2, 720);
+
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+function showCopyToast(msg) {
+  if (!dom.copyToast) return;
+  dom.copyToast.textContent = msg || '✅ Copied to clipboard!';
+  dom.copyToast.classList.remove('hidden');
+  clearTimeout(showCopyToast._t);
+  showCopyToast._t = setTimeout(() => {
+    dom.copyToast.classList.add('hidden');
+  }, 2200);
+}
+
+async function shareScore() {
+  const score = state.score;
+  const url = window.location.origin;
+  const text = `I scored ${score}% on Color Match! Can you beat my score? ${url}`;
+
+  let blob;
+  try {
+    blob = await generateScoreImage();
+  } catch (err) {
+    console.warn('Image generation failed:', err);
+  }
+
+  if (blob && navigator.canShare) {
+    const file = new File([blob], 'color-match-score.png', { type: 'image/png' });
+    if (navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          title: 'Color Match',
+          text: `I scored ${score}% on Color Match! Can you beat my score?`,
+          url,
+          files: [file],
+        });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+  }
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Color Match',
+        text: `I scored ${score}% on Color Match! Can you beat my score?`,
+        url,
+      });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showCopyToast('✅ Link copied to clipboard!');
+  } catch {
+    showCopyToast('Could not copy. Sorry!');
+  }
+
+  if (blob) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `color-match-${score}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+}
+
+// ============================================================
 // STATS DISPLAY
 // ============================================================
 
@@ -869,6 +1000,14 @@ function bindEvents() {
     if (e.key === 'Enter' && !state.isAnimating) handleMatchColor();
     if ((e.key === 'r' || e.key === 'R') && state.isAnimating) playAgain();
   });
+
+  // Share score
+  if (dom.shareScoreBtn) {
+    dom.shareScoreBtn.addEventListener('click', () => {
+      playSound('tick');
+      shareScore();
+    });
+  }
 
   // Leaderboard
   if (dom.lbOpenBtn) {
